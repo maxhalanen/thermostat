@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thermostat UDP Client</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #4a90e2, #50e3c2);
+        color: #fff;
+    }
+
+    .thermostat {
+        background: rgba(0,0,0,0.5);
+        padding: 40px 60px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+        margin-bottom: 30px;
+        font-size: 2.5em;
+    }
+
+    .reading {
+        font-size: 1.5em;
+        margin: 10px 0;
+    }
+
+    .temperature {
+        font-size: 4em;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+
+    .status {
+        font-size: 1em;
+        opacity: 0.8;
+    }
+
+</style>
+</head>
+<body>
+<div class="thermostat">
+    <h1>Thermostat</h1>
+    <div class="reading temperature" id="temp">-- °C</div>
+    <div class="reading" id="press">Pressure: -- Pa</div>
+    <div class="reading" id="alt">Altitude: -- m</div>
+    <div class="status" id="status">Connecting...</div>
+</div>
+
+<script>
+async function fetchUDP() {
+    const status = document.getElementById('status');
+    status.textContent = 'Fetching...';
+
+    try {
+        const res = await fetch('/send-udp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 's' })
+        });
+
+        if (!res.ok) throw new Error('Request failed');
+
+        const data = await res.json();
+        const reply = data.reply;
+
+        // Example: parse "Temp: 26 C, Press: 100976 Pa, Alt: 29 m"
+        const tempMatch = reply.match(/Temp:\s*([\d.]+)/i);
+        const pressMatch = reply.match(/Press:\s*([\d.]+)/i);
+        const altMatch = reply.match(/Alt:\s*([\d.]+)/i);
+
+        if (tempMatch) document.getElementById('temp').textContent = tempMatch[1] + ' °C';
+        if (pressMatch) document.getElementById('press').textContent = 'Pressure: ' + pressMatch[1] + ' Pa';
+        if (altMatch) document.getElementById('alt').textContent = 'Altitude: ' + altMatch[1] + ' m';
+
+        status.textContent = 'Last update: ' + new Date().toLocaleTimeString();
+    } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+    }
+}
+
+// Initial fetch
+fetchUDP();
+
+// Repeat every 5 seconds
+setInterval(fetchUDP, 5000);
+</script>
+</body>
+</html>
+
