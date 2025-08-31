@@ -7,6 +7,8 @@ This project uses an **STM32H563ZI microcontroller** connected to a **BMP180 tem
 The MCU runs a lightweight **UDP server** that responds to incoming requests with live sensor readings.  
 
 A **web server** running on my home lab computer periodically sends UDP requests over Ethernet to the MCU, retrieves the sensor data, and displays it in real-time on a webpage.  
+The webpage is accessible **from anywhere** using a secure **VPN connection** to my home network.  
+
 
 ## System Setup 
 
